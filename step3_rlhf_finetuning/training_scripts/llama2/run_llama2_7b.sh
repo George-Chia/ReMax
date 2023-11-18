@@ -27,7 +27,7 @@ mkdir -p $OUTPUT
 ACTOR_LR=1e-6
 
 
-deepspeed --master_port 12346 --include localhost:6,7  main.py \
+deepspeed --master_port 12346  main.py \
    --algo "remax" \
    --data_path $DATA_PATH \
    --data_split 2,4,4 \
