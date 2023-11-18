@@ -1,0 +1,88 @@
+{
+     // Use IntelliSense to learn about possible attributes.
+     // Hover to view descriptions of existing attributes.
+     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+     "version": "0.2.0",
+     "configurations": [
+          {
+               "name": "Python: Current File",
+               "type": "python",
+               "request": "launch",
+               "program": "${file}",
+               "console": "integratedTerminal",
+               "justMyCode": true
+          },
+          {
+               "name": "single-gpu-step3",
+               "type": "python",
+               "request": "launch",
+               "program": "/home/pclv100s-3/anaconda3/envs/RLHF/bin/deepspeed",
+               "console": "integratedTerminal",
+               "cwd": "/mgdata2/zyz/ReMax/step3_rlhf_finetuning/",
+               // "env": {
+               //     "CUDA_VISIBLE_DEVICES": "1"
+               // },
+               "args": [
+                   "--include=localhost:6",
+                   "--master_port",
+                   "12346",
+                   "/mgdata2/zyz/ReMax/step3_rlhf_finetuning/main.py",
+                   "--algo", "remax",
+                   "--actor_model_name_or_path",
+                   "/home/zhaiyuanzhao/llm/hh/output_step1_Llama2_7b_hh/epoch1",
+                   "--reward_model_name_or_path",
+                   "/home/zhaiyuanzhao/llm/hh/output_step2_Llama2_7b_hh/epoch0",
+                   "--data_path",
+                   "/home/zhaiyuanzhao/llm/dataset/rm-static/data",
+                   "--data_split",
+                   "2,4,4",
+                   "--num_padding_at_beginning",
+                   "1", // TOOD: Is only OPT need it?
+                   "--per_device_generation_batch_size",
+                   "3",
+                   "--per_device_training_batch_size",
+                   "3",
+                   "--generation_batches",
+                   "1",
+                   "--ppo_epochs",
+                   "1",
+                   "--max_answer_seq_len",
+                   "256",
+                   "--max_prompt_seq_len",
+                   "256",
+                   "--actor_learning_rate",
+                   "9.65e-6",
+                   "--actor_weight_decay",
+                   "0.1",
+                   "--num_train_epochs",
+                   "2",
+                   "--lr_scheduler_type",
+                   "cosine",
+                   "--gradient_accumulation_steps",
+                   "1",
+                   "--actor_gradient_checkpointing",
+                   "--num_warmup_steps",
+                   "100",
+                   "--deepspeed",
+                   "--seed",
+                   "1234",
+                   "--enable_hybrid_engine",  
+                   "--actor_zero_stage",
+                   "2",
+                   "--reward_zero_stage",
+                   "2",
+                   "--enable_tensorboard",
+                   "--output_dir",
+                   "./log/step3_remax-meta_llama_Llama_2_7b_hf",
+                   "--print_answers",
+                   "--save_answers",
+                   "--save_at_final",
+                   "--kl_ctl", "0.0",
+                   "--offload",
+                   "--offload_reward_model",
+                   "--offload_reference_model"
+               ],
+               "justMyCode": false
+           },
+     ]
+}

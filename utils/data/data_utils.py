@@ -13,89 +13,231 @@ from datasets import load_dataset
 import numpy as np
 import os
 import hashlib
-from copy import deepcopy
 from itertools import chain
 from . import raw_datasets
-
-IGNORE_INDEX = -100
+from deepspeed.accelerator import get_accelerator
 
 
 def get_raw_dataset(dataset_name, output_path, seed, local_rank):
-    if "Dahoas/rm-static" in dataset_name:
-        return raw_datasets.DahoasRmstaticDataset(
-            output_path, seed, local_rank, dataset_name
-        )
+    if "/home/zhaiyuanzhao/llm/dataset/rm-static/data" in dataset_name:
+        return raw_datasets.LoadDahoasRmstaticDataset(output_path, seed,
+                                                  local_rank, dataset_name,
+                                                  train_dataset_name='train-00000-of-00001-2a1df75c6bce91ab.parquet',
+                                                  test_dataset_name='test-00000-of-00001-8c7c51afc6d45980.parquet')
+    if "/home/zhaiyuanzhao/llm/dataset/rm-static-relabeled_Llama2/data" in dataset_name:
+        return raw_datasets.LoadDahoasRmstaticRelabeledLlama2Dataset(output_path, seed,
+                                                  local_rank, dataset_name,
+                                                  train_dataset_name='train_relabeled_Llama2.parquet',
+                                                  test_dataset_name='test_relabeled_Llama2.parquet')
+    elif "Dahoas/rm-static" in dataset_name:
+        return raw_datasets.DahoasRmstaticDataset(output_path, seed,
+                                                  local_rank, dataset_name)
+    elif "/home/zhaiyuanzhao/llm/dataset/full-hh-rlhf/data" in dataset_name:
+        return raw_datasets.LoadDahoasFullhhrlhfDataset(output_path, seed,
+                                                  local_rank, dataset_name,
+                                                  train_dataset_name='train-00000-of-00001-8349d0765e6718df.parquet',
+                                                  test_dataset_name='test-00000-of-00001-ec71e9262143a91c.parquet')
+    elif "/home/zhaiyuanzhao/llm/dataset/full-hh-rlhf_zh/data" in dataset_name:
+        return raw_datasets.LoadDahoasFullhhrlhfzhDataset(output_path, seed,
+                                                    local_rank, dataset_name,
+                                                    train_dataset_name='zh_full-hh-rlhf_train.parquet',
+                                                    test_dataset_name='zh_full-hh-rlhf_test.parquet')
+    elif "/home/zhaiyuanzhao/llm/dataset/single-hh-rlhf_zh/data" in dataset_name:
+        return raw_datasets.LoadDahoasSinglehhrlhfzhDataset(output_path, seed,
+                                                    local_rank, dataset_name,
+                                                    train_dataset_name='zh_single-hh-rlhf_train.parquet',
+                                                    test_dataset_name='zh_single-hh-rlhf_test.parquet')
+    elif "/home/zhaiyuanzhao/llm/dataset/pcl-compliance_zh/data" in dataset_name:
+        return raw_datasets.LoadPCLComplianceZhDataset(output_path, seed,
+                                                    local_rank, dataset_name,
+                                                    train_dataset_name='zh_pcl_compliance_train.parquet',
+                                                    test_dataset_name='zh_pcl_compliance_test.parquet')
+    elif "/home/zhaiyuanzhao/llm/dataset/pcl-compliance_zh_clean/data" in dataset_name:
+        return raw_datasets.LoadPCLComplianceZhCleanDataset(output_path, seed,
+                                                    local_rank, dataset_name,
+                                                    train_dataset_name='zh_pcl_compliance_train_clean.parquet',
+                                                    test_dataset_name='zh_pcl_compliance_test_clean.parquet')
+    elif "/home/zhaiyuanzhao/llm/dataset/red-teaming_zh/data" in dataset_name:
+        return raw_datasets.LoadPCLRedteamingZhDataset(output_path, seed,
+                                                    local_rank, dataset_name,
+                                                    train_dataset_name='zh_pcl_red_teaming_train.parquet',
+                                                    test_dataset_name='zh_pcl_red_teaming_test.parquet')
+    elif "/home/zhaiyuanzhao/llm/dataset/red-teaming_zh_0825/data" in dataset_name:
+        return raw_datasets.LoadPCLRedteamingZhFourDataset(output_path, seed,
+                                                    local_rank, dataset_name,
+                                                    train_dataset_name='zh_pcl_red_teaming_train_0825.parquet',
+                                                    test_dataset_name='zh_pcl_red_teaming_test_0825.parquet')
+    elif "/home/zhaiyuanzhao/llm/dataset/red-teaming_zh_0901/data" in dataset_name:
+        return raw_datasets.LoadPCLRedteamingZhFiveDataset(output_path, seed,
+                                                    local_rank, dataset_name,
+                                                    train_dataset_name='zh_pcl_red_teaming_train_0901.parquet',
+                                                    test_dataset_name='zh_pcl_red_teaming_test_0901.parquet')
+    elif "/home/zhaiyuanzhao/llm/dataset/red-teaming_zh_0901_clean/data" in dataset_name:
+        return raw_datasets.LoadPCLRedteamingZhFiveCleanDataset(output_path, seed,
+                                                    local_rank, dataset_name,
+                                                    train_dataset_name='zh_pcl_red_teaming_train_0901_clean.parquet',
+                                                    test_dataset_name='zh_pcl_red_teaming_test_0901_clean.parquet')
+    elif "/home/zhaiyuanzhao/llm/dataset/red-teaming_zh_0908/data" in dataset_name:
+        return raw_datasets.LoadPCLRedteamingZhSixDataset(output_path, seed,
+                                                    local_rank, dataset_name,
+                                                    train_dataset_name='zh_pcl_red_teaming_train_0908.parquet',
+                                                    test_dataset_name='zh_pcl_red_teaming_test_0908.parquet')
+    elif "/home/zhaiyuanzhao/llm/dataset/red-teaming_zh_0915/data" in dataset_name:
+        return raw_datasets.LoadPCLRedteamingZhSevenDataset(output_path, seed,
+                                                    local_rank, dataset_name,
+                                                    train_dataset_name='zh_pcl_red_teaming_train_0915.parquet',
+                                                    test_dataset_name='zh_pcl_red_teaming_test_0915.parquet')
+    elif "/home/zhaiyuanzhao/llm/dataset/red-teaming_zh_0915_clean/data" in dataset_name:
+        return raw_datasets.LoadPCLRedteamingZhSevenCleanDataset(output_path, seed,
+                                                    local_rank, dataset_name,
+                                                    train_dataset_name='zh_pcl_red_teaming_train_0915_clean.parquet',
+                                                    test_dataset_name='zh_pcl_red_teaming_test_0915_clean.parquet')
+    elif "/home/zhaiyuanzhao/llm/dataset/red-teaming_zh_0915N08/data" in dataset_name:
+        return raw_datasets.LoadPCLRedteamingZhSevenDataset(output_path, seed,
+                                                    local_rank, dataset_name,
+                                                    train_dataset_name='zh_pcl_red_teaming_train_0915N08.parquet',
+                                                    test_dataset_name='zh_pcl_red_teaming_test_0915N08.parquet')
+    elif "/home/zhaiyuanzhao/llm/dataset/red-teaming-pairs_zh_1019_clean/data" in dataset_name:
+        return raw_datasets.LoadPCLRedteamingPairs1019ZhDataset(output_path, seed,
+                                                    local_rank, dataset_name,
+                                                    train_dataset_name='zh_pcl_red_teaming_train_1019pair_clean.parquet',
+                                                    test_dataset_name='zh_pcl_red_teaming_test_1019pair_clean.parquet')
+    elif "/home/zhaiyuanzhao/llm/dataset/instruction_5w/data" in dataset_name:
+        return raw_datasets.LoadInstructionDataset(output_path, seed,
+                                                    local_rank, dataset_name,
+                                                    train_dataset_name='instruction_5w_train.parquet',
+                                                    test_dataset_name='instruction_5w_test.parquet')
+    elif "/home/zhaiyuanzhao/llm/dataset/instruction_3w/data" in dataset_name:
+        return raw_datasets.LoadInstruction3wDataset(output_path, seed,
+                                                    local_rank, dataset_name,
+                                                    train_dataset_name='instruction_3w_train.parquet',
+                                                    test_dataset_name='instruction_3w_test.parquet')
+    elif "/home/zhaiyuanzhao/llm/dataset/RS_compliance_0825/data" in dataset_name:
+        return raw_datasets.LoadComplianceRSDataset(output_path, seed,
+                                                    local_rank, dataset_name,
+                                                    train_dataset_name='compliance_RS_train.parquet',
+                                                    test_dataset_name='compliance_RS_test.parquet')
+    elif "/home/zhaiyuanzhao/llm/dataset/RS_compliance_0901/data" in dataset_name: # 0901RM  delete repeat
+        return raw_datasets.LoadComplianceRS0901Dataset(output_path, seed,
+                                                    local_rank, dataset_name,
+                                                    train_dataset_name='compliance_RS_0901_train.parquet',
+                                                    test_dataset_name='compliance_RS_0901_test.parquet')
+    elif "/home/zhaiyuanzhao/llm/dataset/RS_redTeaming_0825/data" in dataset_name:
+        return raw_datasets.LoadRedTeamingRSV0Dataset(output_path, seed,
+                                                    local_rank, dataset_name,
+                                                    train_dataset_name='redTeaming_RS_train_v0.parquet',
+                                                    test_dataset_name='redTeaming_RS_test_v0.parquet')
+    elif "/home/zhaiyuanzhao/llm/dataset/RS_redTeaming_0901_clean/data" in dataset_name:
+        return raw_datasets.LoadRedTeamingRS0901Dataset(output_path, seed,
+                                                    local_rank, dataset_name,
+                                                    train_dataset_name='red_teaming_RS_0901_train.parquet',
+                                                    test_dataset_name='red_teaming_RS_0901_test.parquet')
+    elif "/home/zhaiyuanzhao/llm/dataset/RS_redTeaming_0915_clean/data" in dataset_name:
+        return raw_datasets.LoadRedTeamingRS0915Dataset(output_path, seed,
+                                                    local_rank, dataset_name,
+                                                    train_dataset_name='red_teaming_RS_0915_train.parquet',
+                                                    test_dataset_name='red_teaming_RS_0915_test.parquet')
+    elif "/home/zhaiyuanzhao/llm/dataset/pcl-1117-evaluation/phase1_originalRedTeaming/data" in dataset_name:
+        return raw_datasets.Loadphase1_originalRedTeamingDataset(output_path, seed,
+                                                    local_rank, dataset_name,
+                                                    train_dataset_name='phase1_originalRedTeaming.parquet',
+                                                    test_dataset_name='phase1-test.parquet')
+    elif "/home/zhaiyuanzhao/llm/dataset/pcl-1117-evaluation/phase1_phase2_phase3/data" in dataset_name:
+        return raw_datasets.Loadphase1_phase2_phase3Dataset(output_path, seed,
+                                                    local_rank, dataset_name,
+                                                    train_dataset_name='phase1_phase2_phase3.parquet',
+                                                    test_dataset_name='phase1-test.parquet')
+    elif "/home/zhaiyuanzhao/llm/dataset/pcl-1117-evaluation/phase1_phase3/data" in dataset_name:
+        return raw_datasets.Loadphase1_phase3Dataset(output_path, seed,
+                                                    local_rank, dataset_name,
+                                                    train_dataset_name='phase1_phase3.parquet',
+                                                    test_dataset_name='phase1-test.parquet')
+    elif "/home/zhaiyuanzhao/llm/dataset/openai_summarize_comparisons/data" in dataset_name:
+        return raw_datasets.LoadOpenAISummarizationDataset(output_path, seed,
+                                                    local_rank, dataset_name,
+                                                    train_dataset_name='train-00000-of-00001-3cbd295cedeecf91.parquet',
+                                                    test_dataset_name='test-00000-of-00001-0845e2eec675b16a.parquet')
+    elif "/home/zhaiyuanzhao/llm/dataset/openai_summarize_comparisons_relabel_GPTJ/data" in dataset_name:
+        return raw_datasets.LoadOpenAISummarizationRelabelDataset(output_path, seed,
+                                                    local_rank, dataset_name,
+                                                    train_dataset_name='train_relabeled_GPTJ.parquet',
+                                                    test_dataset_name='test_relabeled_GPTJ.parquet')
+    elif "/home/zhaiyuanzhao/llm/dataset/openai_summarize_comparisons_relabel_GPTJ_25noise/data" in dataset_name:
+        return raw_datasets.LoadOpenAISummarizationRelabel25NoiseDataset(output_path, seed,
+                                                    local_rank, dataset_name,
+                                                    train_dataset_name='train_relabeled_GPTJ_noise.parquet',
+                                                    test_dataset_name='test_relabeled_GPTJ_noise.parquet')
+    elif "/home/zhaiyuanzhao/llm/dataset/openai_summarize_comparisons_relabel_GPTJ_15noise/data" in dataset_name:
+        return raw_datasets.LoadOpenAISummarizationRelabel15NoiseDataset(output_path, seed,
+                                                    local_rank, dataset_name,
+                                                    train_dataset_name='train_relabeled_GPTJ_15noise.parquet',
+                                                    test_dataset_name='test_relabeled_GPTJ_15noise.parquet')
     elif "Dahoas/full-hh-rlhf" in dataset_name:
-        return raw_datasets.DahoasFullhhrlhfDataset(
-            output_path, seed, local_rank, dataset_name
-        )
+        return raw_datasets.DahoasFullhhrlhfDataset(output_path, seed,
+                                                    local_rank, dataset_name)
+    elif "/home/zhaiyuanzhao/llm/dataset/synthetic-instruct-gptj-pairwise/data" in dataset_name:
+        return raw_datasets.LoadDahoasSyntheticinstructgptjpairwiseDataset(output_path, seed,
+                                                  local_rank, dataset_name,
+                                                  train_dataset_name='train-00000-of-00001-1e5d57b93c448e7a.parquet')
+    elif "/home/zhaiyuanzhao/llm/dataset/sft-static/data" in dataset_name:
+        return raw_datasets.LoadDahoasSftstaticDataset(output_path, seed,
+                                                  local_rank, dataset_name,
+                                                  train_dataset_name='train-00000-of-00001-9858ff1ae742aece.parquet')
     elif "Dahoas/synthetic-instruct-gptj-pairwise" in dataset_name:
         return raw_datasets.DahoasSyntheticinstructgptjpairwiseDataset(
-            output_path, seed, local_rank, dataset_name
-        )
+            output_path, seed, local_rank, dataset_name)
+    elif "/home/zhaiyuanzhao/llm/dataset/rlhf-reward-datasets/data" in dataset_name:
+        return raw_datasets.LoadYitingxieRlhfrewarddatasetsDataset(output_path, seed,
+                                                  local_rank, dataset_name,
+                                                  train_dataset_name='train-00000-of-00001-2ea3039ca4da89f8.parquet',
+                                                  test_dataset_name='test-00000-of-00001-955c146ec7a10a1e.parquet')
     elif "yitingxie/rlhf-reward-datasets" in dataset_name:
         return raw_datasets.YitingxieRlhfrewarddatasetsDataset(
-            output_path, seed, local_rank, dataset_name
-        )
+            output_path, seed, local_rank, dataset_name)
     elif "openai/webgpt_comparisons" in dataset_name:
         return raw_datasets.OpenaiWebgptcomparisonsDataset(
-            output_path, seed, local_rank, dataset_name
-        )
+            output_path, seed, local_rank, dataset_name)
     elif "stanfordnlp/SHP" in dataset_name:
-        return raw_datasets.StanfordnlpSHPDataset(
-            output_path, seed, local_rank, dataset_name
-        )
+        return raw_datasets.StanfordnlpSHPDataset(output_path, seed,
+                                                  local_rank, dataset_name)
     elif "pvduy/sharegpt_alpaca_oa_vicuna_format" in dataset_name:
         return raw_datasets.PvduySharegptalpacaoavicunaformatDataset(
-            output_path, seed, local_rank, dataset_name
-        )
+            output_path, seed, local_rank, dataset_name)
     elif "wangrui6/Zhihu-KOL" in dataset_name:
-        return raw_datasets.Wangrui6ZhihuKOLDataset(
-            output_path, seed, local_rank, dataset_name
-        )
+        return raw_datasets.Wangrui6ZhihuKOLDataset(output_path, seed,
+                                                    local_rank, dataset_name)
     elif "Cohere/miracl-zh-queries-22-12" in dataset_name:
         return raw_datasets.CohereMiraclzhqueries2212Dataset(
-            output_path, seed, local_rank, dataset_name
-        )
+            output_path, seed, local_rank, dataset_name)
     elif "Hello-SimpleAI/HC3-Chinese" in dataset_name:
         return raw_datasets.HelloSimpleAIHC3ChineseDataset(
-            output_path, seed, local_rank, dataset_name
-        )
+            output_path, seed, local_rank, dataset_name)
     elif "mkqa-Chinese" in dataset_name:
-        return raw_datasets.MkqaChineseDataset(output_path, seed, local_rank, "mkqa")
+        return raw_datasets.MkqaChineseDataset(output_path, seed, local_rank,
+                                               "mkqa")
     elif "mkqa-Japanese" in dataset_name:
-        return raw_datasets.MkqaJapaneseDataset(output_path, seed, local_rank, "mkqa")
+        return raw_datasets.MkqaJapaneseDataset(output_path, seed, local_rank,
+                                                "mkqa")
     elif "Cohere/miracl-ja-queries-22-12" in dataset_name:
         return raw_datasets.CohereMiracljaqueries2212Dataset(
-            output_path, seed, local_rank, dataset_name
-        )
+            output_path, seed, local_rank, dataset_name)
     elif "lmqg/qg_jaquad" in dataset_name:
-        return raw_datasets.LmqgQgjaquadDataset(
-            output_path, seed, local_rank, dataset_name
-        )
+        return raw_datasets.LmqgQgjaquadDataset(output_path, seed, local_rank,
+                                                dataset_name)
     elif "lmqg/qag_jaquad" in dataset_name:
-        return raw_datasets.LmqgQagjaquadDataset(
-            output_path, seed, local_rank, dataset_name
-        )
+        return raw_datasets.LmqgQagjaquadDataset(output_path, seed, local_rank,
+                                                 dataset_name)
     elif "local/jsonfile" in dataset_name:
         chat_path = os.path.abspath(
-            os.path.join(
-                os.path.dirname(__file__),
-                os.path.pardir,
-                os.path.pardir,
-                os.path.pardir,
-            )
-        )
-        if not (
-            os.path.isfile(chat_path + "/data/train.json")
-            and os.path.isfile(chat_path + "/data/eval.json")
-        ):
+            os.path.join(os.path.dirname(__file__), os.path.pardir,
+                         os.path.pardir, os.path.pardir))
+        if not (os.path.isfile(chat_path + '/data/train.json')
+                and os.path.isfile(chat_path + '/data/eval.json')):
             raise RuntimeError(
                 f"Please check both the train.json and eval.json files in your applications/DeepSpeed-Chat/data directory."
             )
-        return raw_datasets.LocalJsonFileDataset(
-            output_path, seed, local_rank, dataset_name, chat_path
-        )
+        return raw_datasets.LocalJsonFileDataset(output_path, seed, local_rank,
+                                                 dataset_name, chat_path)
     else:
         raise RuntimeError(
             f"We do not have configs for dataset {dataset_name}, but you can add it by yourself in raw_datasets.py."
@@ -112,47 +254,42 @@ def get_shuffle_idx(seed, size):
     return shuffle_idx
 
 
-def get_raw_dataset_split_index(
-    local_rank,
-    output_path,
-    dataset_name,
-    seed,
-    split_name,
-    data_split,
-    split_index,
-    data_size,
-):
+def get_raw_dataset_split_index(local_rank, output_path, dataset_name, seed,
+                                split_name, data_split, split_index,
+                                data_size):
     index_file_name = f"{output_path}/{dataset_name}_seed{seed}_{split_name}_{data_split}_{split_index}.npy"
     # reindex each time when using local jsonfile since it's more likely to get modified
-    if (not os.path.isfile(index_file_name)) or (dataset_name == "jsonfile"):
-        splits = [float(s) for s in data_split.split(",")]
+    if (not os.path.isfile(index_file_name)) or (dataset_name == 'jsonfile'):
+        splits = [float(s) for s in data_split.split(',')]
         splits_sum = sum(splits)
         splits = [split / splits_sum for split in splits]
         splits_index = [0]
         for index, split in enumerate(splits):
-            splits_index.append(
-                splits_index[index] + int(round(split * float(data_size)))
-            )
+            splits_index.append(splits_index[index] +
+                                int(round(split * float(data_size))))
         diff = splits_index[-1] - data_size
         for index in range(1, len(splits_index)):
             splits_index[index] -= diff
+            if splits_index[index]<0:
+                splits_index[index]=0
         assert splits_index[-1] == data_size
 
         shuffle_idx = get_shuffle_idx(seed, data_size)
         for split_i in range(len(splits)):
             shuffle_idx_split_file_name = f"{output_path}/{dataset_name}_seed{seed}_{split_name}_{data_split}_{split_i}.npy"
             shuffle_idx_split = shuffle_idx[
-                splits_index[split_i] : splits_index[split_i + 1]
-            ]
-            np.save(shuffle_idx_split_file_name, shuffle_idx_split, allow_pickle=True)
+                splits_index[split_i]:splits_index[split_i + 1]]
+            np.save(shuffle_idx_split_file_name,
+                    shuffle_idx_split,
+                    allow_pickle=True)
     index = np.load(index_file_name, allow_pickle=True)
     return index.tolist()
 
 
 class PromptDataset(Dataset):
-    def __init__(
-        self, prompt_dataset, chosen_dataset, reject_dataset, pad_token_id, train_phase
-    ) -> None:
+
+    def __init__(self, prompt_dataset, chosen_dataset, reject_dataset,
+                 pad_token_id, train_phase) -> None:
         super().__init__()
         self.prompt_dataset = prompt_dataset
         self.chosen_dataset = chosen_dataset
@@ -171,115 +308,59 @@ class PromptDataset(Dataset):
             return {
                 "input_ids": self.chosen_dataset[idx]["input_ids"],
                 "attention_mask": self.chosen_dataset[idx]["attention_mask"],
-                "labels": self.chosen_dataset[idx]["labels"],  # input_ids
+                "labels": self.chosen_dataset[idx]["input_ids"]
             }
         elif self.train_phase == 2:
-            return (
-                self.chosen_dataset[idx]["input_ids"],
-                self.chosen_dataset[idx]["attention_mask"],
-                self.reject_dataset[idx]["input_ids"],
-                self.reject_dataset[idx]["attention_mask"],
-            )
+            return self.chosen_dataset[idx]["input_ids"], self.chosen_dataset[idx]["attention_mask"], \
+                self.reject_dataset[idx]["input_ids"], self.reject_dataset[idx]["attention_mask"]
         elif self.train_phase == 3:
-            return (
-                self.prompt_dataset[idx]["input_ids"],
-                self.prompt_dataset[idx]["attention_mask"],
-                self.pad_token_id,
-            )
+            return self.prompt_dataset[idx]["input_ids"],self.prompt_dataset[idx]["attention_mask"], \
+                self.pad_token_id
 
 
-def create_dataset_split(
-    current_dataset,
-    raw_dataset,
-    train_phase,
-    tokenizer,
-    end_of_conversation_token,
-    max_seq_len,
-):
+def create_dataset_split(current_dataset, raw_dataset, train_phase, tokenizer,
+                         end_of_conversation_token, max_seq_len, prompt_suffix):
     prompt_dataset = []
     chosen_dataset = []
     reject_dataset = []
     if train_phase == 1:
         for i, tmp_data in enumerate(current_dataset):
             # tokenize the text
-            prompt = raw_dataset.get_prompt(tmp_data)
             chosen_sentence = raw_dataset.get_prompt_and_chosen(
-                tmp_data
-            )  # the accept response
+                tmp_data)  # the accept response
             if chosen_sentence is not None:
-                prompt_token = tokenizer(
-                    prompt,
-                    max_length=max_seq_len,
-                    padding="do_not_pad",
-                    truncation=True,
-                    return_tensors="pt",
-                )
-                prompt_length = len(prompt_token["input_ids"].flatten())
-
                 chosen_sentence += end_of_conversation_token
-                chosen_token = tokenizer(
-                    chosen_sentence,
-                    max_length=max_seq_len,
-                    padding="max_length",
-                    truncation=True,
-                    return_tensors="pt",
-                )
-                chosen_token["input_ids"] = chosen_token["input_ids"].squeeze(0)
-                chosen_token["attention_mask"] = chosen_token["attention_mask"].squeeze(
-                    0
-                )
-
-                # do not calculate loss for prompts labels
-                labels = deepcopy(chosen_token["input_ids"])
-                if prompt_length == max_seq_len:
-                    # skip inputs that are all of prompts
-                    continue
-                else:
-                    labels[:prompt_length] = IGNORE_INDEX
-
-                # our implementation: pad tokens are not used for loss
-                assert tokenizer.pad_token == tokenizer.eos_token
-                padding_begin_ids = (
-                    (
-                        chosen_token["input_ids"][prompt_length:]
-                        == tokenizer.pad_token_id
-                    )
-                    .nonzero()
-                    .flatten()
-                )
-                if len(padding_begin_ids) > 1:
-                    # we use padding_begin_ids[1] because of the right-side shifting in calculating loss
-                    padding_begin_id = padding_begin_ids[1].item() + prompt_length
-                    labels[padding_begin_id:] = IGNORE_INDEX
-                chosen_token["labels"] = labels
+                chosen_token = tokenizer(chosen_sentence,
+                                         max_length=max_seq_len,
+                                         padding="max_length",
+                                         truncation=True,
+                                         return_tensors="pt")
+                chosen_token["input_ids"] = chosen_token["input_ids"].squeeze(
+                    0)
+                chosen_token["attention_mask"] = chosen_token[
+                    "attention_mask"].squeeze(0)
                 chosen_dataset.append(chosen_token)
 
     elif train_phase == 2:
         for i, tmp_data in enumerate(current_dataset):
             # tokenize the text
             chosen_sentence = raw_dataset.get_prompt_and_chosen(
-                tmp_data
-            )  # the accept response
+                tmp_data)  # the accept response
             reject_sentence = raw_dataset.get_prompt_and_rejected(
-                tmp_data
-            )  # the accept response
+                tmp_data)  # the accept response
             if chosen_sentence is not None and reject_sentence is not None:
                 chosen_sentence += end_of_conversation_token  # the accept response
                 reject_sentence += end_of_conversation_token
-                chosen_token = tokenizer(
-                    chosen_sentence,
-                    max_length=max_seq_len,
-                    padding="max_length",
-                    truncation=True,
-                    return_tensors="pt",
-                )
-                reject_token = tokenizer(
-                    reject_sentence,
-                    max_length=max_seq_len,
-                    padding="max_length",
-                    truncation=True,
-                    return_tensors="pt",
-                )
+                chosen_token = tokenizer(chosen_sentence,
+                                         max_length=max_seq_len,
+                                         padding="max_length",
+                                         truncation=True,
+                                         return_tensors="pt")
+                reject_token = tokenizer(reject_sentence,
+                                         max_length=max_seq_len,
+                                         padding="max_length",
+                                         truncation=True,
+                                         return_tensors="pt")
                 chosen_token["input_ids"] = chosen_token["input_ids"]
                 chosen_token["attention_mask"] = chosen_token["attention_mask"]
                 chosen_dataset.append(chosen_token)
@@ -291,7 +372,7 @@ def create_dataset_split(
     elif train_phase == 3:
         for i, tmp_data in enumerate(current_dataset):
             # tokenize the text
-            prompt = raw_dataset.get_prompt(tmp_data)
+            prompt = raw_dataset.get_prompt(tmp_data) + prompt_suffix
             if prompt is not None:
                 prompt_token = tokenizer(prompt, return_tensors="pt")
                 prompt_token["input_ids"] = prompt_token["input_ids"]
@@ -299,93 +380,60 @@ def create_dataset_split(
                 for key_word in ["input_ids", "attention_mask"]:
                     length = prompt_token[key_word].size()[-1]
                     if length > max_seq_len:
-                        y = (
-                            prompt_token[key_word]
-                            .squeeze(0)[length - (max_seq_len - 1) :]
-                            .flip(0)
-                        )
+                        y = prompt_token[key_word].squeeze(0)[length -
+                                                              (max_seq_len -
+                                                               1):].flip(0)
                     else:
                         y = prompt_token[key_word].squeeze(0).flip(0)
                     prompt_token[key_word] = y
                 prompt_dataset.append(prompt_token)
-    return PromptDataset(
-        prompt_dataset,
-        chosen_dataset,
-        reject_dataset,
-        tokenizer.pad_token_id,
-        train_phase,
-    )
+    return PromptDataset(prompt_dataset, chosen_dataset, reject_dataset,
+                         tokenizer.pad_token_id, train_phase)
 
 
-def create_dataset(
-    local_rank,
-    dataset_name,
-    data_split,
-    output_path,
-    train_phase,
-    seed,
-    tokenizer,
-    end_of_conversation_token,
-    max_seq_len,
-):
+def create_dataset(local_rank, dataset_name, data_split, output_path,
+                   train_phase, seed, tokenizer, end_of_conversation_token,
+                   max_seq_len, prompt_suffix=""):
     raw_dataset = get_raw_dataset(dataset_name, output_path, seed, local_rank)
     train_dataset = raw_dataset.get_train_data()
-    train_index = get_raw_dataset_split_index(
-        local_rank,
-        output_path,
-        raw_dataset.dataset_name_clean,
-        seed,
-        "train",
-        data_split,
-        train_phase - 1,
-        len(train_dataset),
-    )
-    train_dataset = Subset(train_dataset, train_index)
-    train_dataset = create_dataset_split(
-        train_dataset,
-        raw_dataset,
-        train_phase,
-        tokenizer,
-        end_of_conversation_token,
-        max_seq_len,
-    )
+    train_index = get_raw_dataset_split_index(local_rank, output_path,
+                                              raw_dataset.dataset_name_clean,
+                                              seed, "train", data_split,
+                                              train_phase - 1,
+                                              len(train_dataset))
+    if not isinstance(train_dataset,Subset):
+        train_dataset = Subset(train_dataset, train_index)
+    train_dataset = create_dataset_split(train_dataset, raw_dataset,
+                                         train_phase, tokenizer,
+                                         end_of_conversation_token,
+                                         max_seq_len, prompt_suffix)
 
     eval_dataset = raw_dataset.get_eval_data()
-    eval_index = get_raw_dataset_split_index(
-        local_rank,
-        output_path,
-        raw_dataset.dataset_name_clean,
-        seed,
-        "eval",
-        data_split,
-        train_phase - 1,
-        len(eval_dataset),
-    )
-    eval_dataset = Subset(eval_dataset, eval_index)
-    eval_dataset = create_dataset_split(
-        eval_dataset,
-        raw_dataset,
-        train_phase,
-        tokenizer,
-        end_of_conversation_token,
-        max_seq_len,
-    )
+    eval_index = get_raw_dataset_split_index(local_rank, output_path,
+                                             raw_dataset.dataset_name_clean,
+                                             seed, "eval",
+                                             data_split, train_phase - 1,
+                                             len(eval_dataset))
+    if not isinstance(eval_dataset, Subset):
+        eval_dataset = Subset(eval_dataset, eval_index)
+    eval_dataset = create_dataset_split(eval_dataset, raw_dataset, train_phase,
+                                        tokenizer, end_of_conversation_token,
+                                        max_seq_len, prompt_suffix)
     return train_dataset, eval_dataset
 
 
-def create_prompt_dataset(
-    local_rank,
-    data_path,
-    data_split,
-    output_path,
-    train_phase,
-    seed,
-    tokenizer,
-    max_seq_len,
-    end_of_conversation_token="<|endoftext|>",
-    sft_only_data_path=[],
-    reload=False,
-):
+def create_prompt_dataset(local_rank,
+                          data_path,
+                          data_split,
+                          output_path,
+                          train_phase,
+                          seed,
+                          tokenizer,
+                          max_seq_len,
+                          end_of_conversation_token="<|endoftext|>",
+                          sft_only_data_path=[],
+                          reload=False,
+                          prompt_suffix=''):
     """
     Creates the prompt dataset
     """
@@ -395,29 +443,22 @@ def create_prompt_dataset(
     tokenizer_name = tokenizer.init_kwargs["name_or_path"].replace("/", "_")
     fname = f"{fname}_split{data_split}_phase{train_phase}_seed{seed}_tokenizer{tokenizer_name}_seqlen{max_seq_len}_sft{sft_cache_key}"
     fname = "_".join(fname.split("/"))
-    fname = hashlib.sha256(
-        fname.encode()
-    ).hexdigest()  # hash the file name to avoid too long file name
+    fname = hashlib.sha256(fname.encode()).hexdigest(
+    )  # hash the file name to avoid too long file name
     train_fname = f"{output_path}/traindata_{fname}.pt"
     eval_fname = f"{output_path}/evaldata_{fname}.pt"
 
     cache_found = os.path.isfile(train_fname) and os.path.isfile(eval_fname)
-    buf_create_cache = torch.ByteTensor([not cache_found]).cuda()
+    buf_create_cache = torch.ByteTensor([not cache_found]).to(
+        get_accelerator().current_device_name())
     torch.distributed.all_reduce(buf_create_cache)
 
     if local_rank <= 0 and (buf_create_cache.item() != 0 or reload):
+        print('Re-creating dataset')
         if len(data_path) == 1:  # Single dataset.
             train_dataset, eval_dataset = create_dataset(
-                local_rank,
-                data_path[0],
-                data_split,
-                output_path,
-                train_phase,
-                seed,
-                tokenizer,
-                end_of_conversation_token,
-                max_seq_len,
-            )
+                local_rank, data_path[0], data_split, output_path, train_phase,
+                seed, tokenizer, end_of_conversation_token, max_seq_len, prompt_suffix)
         else:  # Blending datasets.
             train_datasets = []
             eval_datasets = []
@@ -425,16 +466,8 @@ def create_prompt_dataset(
             eval_size = 0
             for d_path in data_path:
                 train_dataset, eval_dataset = create_dataset(
-                    local_rank,
-                    d_path,
-                    data_split,
-                    output_path,
-                    train_phase,
-                    seed,
-                    tokenizer,
-                    end_of_conversation_token,
-                    max_seq_len,
-                )
+                    local_rank, d_path, data_split, output_path, train_phase,
+                    seed, tokenizer, end_of_conversation_token, max_seq_len, prompt_suffix)
                 train_datasets.append(train_dataset)
                 eval_datasets.append(eval_dataset)
                 train_size += len(train_dataset)
@@ -470,7 +503,8 @@ def create_prompt_dataset(
                 sft_eval_size += len(sft_eval_dataset)
             if sft_train_datasets:  # Check if sft_train_datasets is not empty
                 sft_train_dataset = ConcatDataset(sft_train_datasets)
-                train_dataset = ConcatDataset([train_dataset, sft_train_dataset])
+                train_dataset = ConcatDataset(
+                    [train_dataset, sft_train_dataset])
                 shuffle_idx = get_shuffle_idx(seed, len(train_dataset))
                 train_dataset = Subset(train_dataset, shuffle_idx.tolist())
             if sft_eval_datasets:  # Check if sft_eval_datasets is not empty
@@ -480,23 +514,213 @@ def create_prompt_dataset(
                 eval_dataset = Subset(eval_dataset, shuffle_idx.tolist())
         torch.save(train_dataset, train_fname)
         torch.save(eval_dataset, eval_fname)
+    else:
+        print('Loading cache dataset...')
+        print('train_fname: ', train_fname)
+        print('eval_fname: ', eval_fname)
     torch.distributed.barrier()
+    return torch.load(train_fname), torch.load(eval_fname)
+
+def create_prompt_dataset_not_distributed(local_rank,
+                          data_path,
+                          data_split,
+                          output_path,
+                          train_phase,
+                          seed,
+                          tokenizer,
+                          max_seq_len,
+                          end_of_conversation_token="<|endoftext|>",
+                          sft_only_data_path=[],
+                          reload=False):
+    """
+    Creates the prompt dataset
+    """
+    os.makedirs(output_path, exist_ok=True)
+    fname = "_".join(data_path)
+    sft_cache_key = "_".join(sft_only_data_path)
+    tokenizer_name = tokenizer.init_kwargs["name_or_path"].replace("/", "_")
+    fname = f"{fname}_split{data_split}_phase{train_phase}_seed{seed}_tokenizer{tokenizer_name}_seqlen{max_seq_len}_sft{sft_cache_key}"
+    fname = "_".join(fname.split("/"))
+    fname = hashlib.sha256(fname.encode()).hexdigest(
+    )  # hash the file name to avoid too long file name
+    train_fname = f"{output_path}/traindata_{fname}.pt"
+    eval_fname = f"{output_path}/evaldata_{fname}.pt"
+
+    cache_found = os.path.isfile(train_fname) and os.path.isfile(eval_fname)
+    buf_create_cache = torch.ByteTensor([not cache_found]).cuda()
+    # torch.distributed.all_reduce(buf_create_cache)
+
+    if local_rank <= 0 and (buf_create_cache.item() != 0 or reload):
+        if len(data_path) == 1:  # Single dataset.
+            train_dataset, eval_dataset = create_dataset(
+                local_rank, data_path[0], data_split, output_path, train_phase,
+                seed, tokenizer, end_of_conversation_token, max_seq_len)
+        else:  # Blending datasets.
+            train_datasets = []
+            eval_datasets = []
+            train_size = 0
+            eval_size = 0
+            for d_path in data_path:
+                train_dataset, eval_dataset = create_dataset(
+                    local_rank, d_path, data_split, output_path, train_phase,
+                    seed, tokenizer, end_of_conversation_token, max_seq_len)
+                train_datasets.append(train_dataset)
+                eval_datasets.append(eval_dataset)
+                train_size += len(train_dataset)
+                eval_size += len(eval_dataset)
+            train_dataset = ConcatDataset(train_datasets)
+            shuffle_idx = get_shuffle_idx(seed, train_size)
+            train_dataset = Subset(train_dataset, shuffle_idx.tolist())
+            eval_dataset = ConcatDataset(eval_datasets)
+            shuffle_idx = get_shuffle_idx(seed, eval_size)
+            eval_dataset = Subset(eval_dataset, shuffle_idx.tolist())
+
+        # Append the SFT-only dataset if it exists, and current phase is 1(SFT).
+        if train_phase == 1 and sft_only_data_path:
+            sft_train_datasets = []
+            sft_eval_datasets = []
+            sft_train_size = 0
+            sft_eval_size = 0
+            for sft_path in sft_only_data_path:
+                sft_train_dataset, sft_eval_dataset = create_dataset(
+                    local_rank,
+                    sft_path,
+                    "10,0,0",
+                    output_path,
+                    train_phase,
+                    seed,
+                    tokenizer,
+                    end_of_conversation_token,
+                    max_seq_len,
+                )
+                sft_train_datasets.append(sft_train_dataset)
+                sft_eval_datasets.append(sft_eval_dataset)
+                sft_train_size += len(sft_train_dataset)
+                sft_eval_size += len(sft_eval_dataset)
+            if sft_train_datasets:  # Check if sft_train_datasets is not empty
+                sft_train_dataset = ConcatDataset(sft_train_datasets)
+                train_dataset = ConcatDataset(
+                    [train_dataset, sft_train_dataset])
+                shuffle_idx = get_shuffle_idx(seed, len(train_dataset))
+                train_dataset = Subset(train_dataset, shuffle_idx.tolist())
+            if sft_eval_datasets:  # Check if sft_eval_datasets is not empty
+                sft_eval_dataset = ConcatDataset(sft_eval_datasets)
+                eval_dataset = ConcatDataset([eval_dataset, sft_eval_dataset])
+                shuffle_idx = get_shuffle_idx(seed, len(eval_dataset))
+                eval_dataset = Subset(eval_dataset, shuffle_idx.tolist())
+        torch.save(train_dataset, train_fname)
+        torch.save(eval_dataset, eval_fname)
+    # torch.distributed.barrier()
+    return torch.load(train_fname), torch.load(eval_fname)
+
+def create_prompt_dataset_single_gpu(local_rank,
+                          data_path,
+                          data_split,
+                          output_path,
+                          train_phase,
+                          seed,
+                          tokenizer,
+                          max_seq_len,
+                          end_of_conversation_token="<|endoftext|>",
+                          sft_only_data_path=[]):
+    """
+    Creates the prompt dataset
+    """
+    os.makedirs(output_path, exist_ok=True)
+    fname = "_".join(data_path)
+    sft_cache_key = "_".join(sft_only_data_path)
+    tokenizer_name = tokenizer.init_kwargs["name_or_path"].replace("/", "_")
+    fname = f"{fname}_split{data_split}_phase{train_phase}_seed{seed}_tokenizer{tokenizer_name}_seqlen{max_seq_len}_sft{sft_cache_key}"
+    fname = "_".join(fname.split("/"))
+    fname = hashlib.sha256(fname.encode()).hexdigest(
+    )  # hash the file name to avoid too long file name
+    train_fname = f"{output_path}/traindata_{fname}.pt"
+    eval_fname = f"{output_path}/evaldata_{fname}.pt"
+
+    cache_found = os.path.isfile(train_fname) and os.path.isfile(eval_fname)
+    buf_create_cache = torch.ByteTensor([not cache_found]).cuda()
+    # torch.distributed.all_reduce(buf_create_cache)
+
+    if local_rank <= 0 and buf_create_cache.item() != 0:
+    # if True:
+        if len(data_path) == 1:  # Single dataset.
+            train_dataset, eval_dataset = create_dataset(
+                local_rank, data_path[0], data_split, output_path, train_phase,
+                seed, tokenizer, end_of_conversation_token, max_seq_len)
+        else:  # Blending datasets.
+            train_datasets = []
+            eval_datasets = []
+            train_size = 0
+            eval_size = 0
+            for d_path in data_path:
+                train_dataset, eval_dataset = create_dataset(
+                    local_rank, d_path, data_split, output_path, train_phase,
+                    seed, tokenizer, end_of_conversation_token, max_seq_len)
+                train_datasets.append(train_dataset)
+                eval_datasets.append(eval_dataset)
+                train_size += len(train_dataset)
+                eval_size += len(eval_dataset)
+            train_dataset = ConcatDataset(train_datasets)
+            shuffle_idx = get_shuffle_idx(seed, train_size)
+            train_dataset = Subset(train_dataset, shuffle_idx.tolist())
+            eval_dataset = ConcatDataset(eval_datasets)
+            shuffle_idx = get_shuffle_idx(seed, eval_size)
+            eval_dataset = Subset(eval_dataset, shuffle_idx.tolist())
+
+        # Append the SFT-only dataset if it exists, and current phase is 1(SFT).
+        if train_phase == 1 and sft_only_data_path:
+            sft_train_datasets = []
+            sft_eval_datasets = []
+            sft_train_size = 0
+            sft_eval_size = 0
+            for sft_path in sft_only_data_path:
+                sft_train_dataset, sft_eval_dataset = create_dataset(
+                    local_rank,
+                    sft_path,
+                    "10,0,0",
+                    output_path,
+                    train_phase,
+                    seed,
+                    tokenizer,
+                    end_of_conversation_token,
+                    max_seq_len,
+                )
+                sft_train_datasets.append(sft_train_dataset)
+                sft_eval_datasets.append(sft_eval_dataset)
+                sft_train_size += len(sft_train_dataset)
+                sft_eval_size += len(sft_eval_dataset)
+            if sft_train_datasets:  # Check if sft_train_datasets is not empty
+                sft_train_dataset = ConcatDataset(sft_train_datasets)
+                train_dataset = ConcatDataset(
+                    [train_dataset, sft_train_dataset])
+                shuffle_idx = get_shuffle_idx(seed, len(train_dataset))
+                train_dataset = Subset(train_dataset, shuffle_idx.tolist())
+            if sft_eval_datasets:  # Check if sft_eval_datasets is not empty
+                sft_eval_dataset = ConcatDataset(sft_eval_datasets)
+                eval_dataset = ConcatDataset([eval_dataset, sft_eval_dataset])
+                shuffle_idx = get_shuffle_idx(seed, len(eval_dataset))
+                eval_dataset = Subset(eval_dataset, shuffle_idx.tolist())
+        torch.save(train_dataset, train_fname)
+        torch.save(eval_dataset, eval_fname)
+    # torch.distributed.barrier()
     return torch.load(train_fname), torch.load(eval_fname)
 
 
 class DataCollatorReward:
+
     def __call__(self, data):
         batch = {}
-        batch["input_ids"] = torch.cat(
-            [f[0] for f in data] + [f[2] for f in data], dim=0
-        )
-        batch["attention_mask"] = torch.cat(
-            [f[1] for f in data] + [f[3] for f in data], dim=0
-        )
+        batch["input_ids"] = torch.cat([f[0]
+                                        for f in data] + [f[2] for f in data],
+                                       dim=0)
+        batch["attention_mask"] = torch.cat([f[1] for f in data] +
+                                            [f[3] for f in data],
+                                            dim=0)
         return batch
 
 
 class DataCollatorRLHF:
+
     def __init__(self, max_token_len, inference_tp_size):
         self.max_token_len = max_token_len
         self.inference_tp_size = inference_tp_size
@@ -505,23 +729,25 @@ class DataCollatorRLHF:
         batch = {}
         pad_token_id = data[-1][-1]
 
-        prompt = pad_sequence(
-            [f[0] for f in data], padding_value=pad_token_id, batch_first=True
-        )
-        prompt_mask = pad_sequence(
-            [f[1] for f in data], padding_value=0, batch_first=True
-        )
+        prompt = pad_sequence([f[0] for f in data],
+                              padding_value=pad_token_id,
+                              batch_first=True)
+        prompt_mask = pad_sequence([f[1] for f in data],
+                                   padding_value=0,
+                                   batch_first=True)
 
         ### make sure the final ouput is a seqence of 2**?
         length = prompt.size()[-1]
         pad_length = self.max_token_len - length
         if pad_length > 0:
-            batch["prompt"] = F.pad(
-                prompt, pad=(0, pad_length), mode="constant", value=pad_token_id
-            )
-            batch["prompt_att_mask"] = F.pad(
-                prompt_mask, pad=(0, pad_length), mode="constant", value=0
-            )
+            batch["prompt"] = F.pad(prompt,
+                                    pad=(0, pad_length),
+                                    mode='constant',
+                                    value=pad_token_id)
+            batch["prompt_att_mask"] = F.pad(prompt_mask,
+                                             pad=(0, pad_length),
+                                             mode='constant',
+                                             value=0)
         else:
             batch["prompt"] = prompt
             batch["prompt_att_mask"] = prompt_mask
@@ -532,8 +758,7 @@ class DataCollatorRLHF:
 
 def get_unsupervised_data(args, tokenizer):
     unsupervised_raw_datasets = load_dataset(
-        args.unsupervised_dataset_name, args.unsupervised_dataset_config_name
-    )
+        args.unsupervised_dataset_name, args.unsupervised_dataset_config_name)
     column_names = unsupervised_raw_datasets["train"].column_names
     text_column_name = "text" if "text" in column_names else column_names[0]
 
@@ -553,7 +778,10 @@ def get_unsupervised_data(args, tokenizer):
 
     def group_texts(examples):
         # Concatenate all texts.
-        concatenated_examples = {k: list(chain(*examples[k])) for k in examples.keys()}
+        concatenated_examples = {
+            k: list(chain(*examples[k]))
+            for k in examples.keys()
+        }
         total_length = len(concatenated_examples[list(examples.keys())[0]])
         # We drop the small remainder, we could add padding if the model supported it instead of this drop, you can
         # customize this part to your needs.
@@ -561,7 +789,8 @@ def get_unsupervised_data(args, tokenizer):
             total_length = (total_length // block_size) * block_size
         # Split by chunks of max_len.
         result = {
-            k: [t[i : i + block_size] for i in range(0, total_length, block_size)]
+            k:
+            [t[i:i + block_size] for i in range(0, total_length, block_size)]
             for k, t in concatenated_examples.items()
         }
         result["labels"] = result["input_ids"].copy()
@@ -581,6 +810,7 @@ def get_unsupervised_data(args, tokenizer):
 
 
 class MiniDataset:
+
     def __init__(self, max_size, small_batch_size):
         self.dataset = []
         self.max_size = max_size
@@ -598,17 +828,15 @@ class MiniDataset:
             for i in range(0, large_size, self.small_batch_size):
                 if type(large_batch) == list or type(large_batch) == tuple:
                     small_dataset.append(
-                        [x[i : i + self.small_batch_size] for x in large_batch]
-                    )
+                        [x[i:i + self.small_batch_size] for x in large_batch])
                 elif type(large_batch) == dict:
-                    small_dataset.append(
-                        {
-                            k: v[i : i + self.small_batch_size]
-                            for k, v in large_batch.items()
-                        }
-                    )
+                    small_dataset.append({
+                        k: v[i:i + self.small_batch_size]
+                        for k, v in large_batch.items()
+                    })
                 else:
-                    small_dataset.append(large_batch[i : i + self.small_batch_size])
+                    small_dataset.append(large_batch[i:i +
+                                                     self.small_batch_size])
         self.free()
 
         return small_dataset

@@ -56,8 +56,6 @@ deepspeed --master_port 12346 --include localhost:6,7  main.py \
    --offload \
    --offload_reward_model \
    --offload_reference_model \
-   --actor_bf16 \
-   --reward_bf16 \
    --seed $SEED \
    --actor_zero_stage $ACTOR_ZERO_STAGE \
    --reward_zero_stage $REWARD_ZERO_STAGE \

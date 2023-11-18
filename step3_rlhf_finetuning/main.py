@@ -715,13 +715,15 @@ def main():
     torch.distributed.barrier()
 
     if args.global_rank == 0:
+        if not os.path.exists(args.output_dir):
+            os.makedirs(args.output_dir)
         with open(
             os.path.join(args.output_dir, "args.json"), "w", encoding="utf-8"
         ) as f:
             for key, value in args.__dict__.items():
                 json.dump({key: value}, f, ensure_ascii=False)
                 f.write("\n")
-        save_code(args.output_dir)
+        # save_code(args.output_dir)
 
         print(f"Tensorboard logs going to: {args.tensorboard_path}")
         writer = SummaryWriter(f"{args.tensorboard_path}")
