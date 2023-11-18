@@ -183,6 +183,16 @@ def parse_args():
             "constant_with_warmup",
         ],
     )
+    ## Tokenizer
+    parser.add_argument(
+        "--add_eot_token",
+        action='store_true',
+        help="Add <|endoftext|> as additional special token to tokenizer")
+    parser.add_argument(
+        '--end_of_conversation_token',
+        type=str,
+        default="<|endoftext|>",
+        help='end_of_conversation_token')
     parser.add_argument(
         "--gradient_accumulation_steps",
         type=int,
@@ -728,8 +738,11 @@ def main():
         print(f"Tensorboard logs going to: {args.tensorboard_path}")
         writer = SummaryWriter(f"{args.tensorboard_path}")
 
+    additional_special_tokens = args.end_of_conversation_token if args.add_eot_token else None
     # load_hf_tokenizer will get the correct tokenizer and set padding tokens based on the model family
-    tokenizer = load_hf_tokenizer(args.actor_model_name_or_path, fast_tokenizer=True)
+    tokenizer = load_hf_tokenizer(args.actor_model_name_or_path,
+                                  fast_tokenizer=True,
+                                  add_special_tokens=additional_special_tokens)
     (
         prompt_train_dataloader,
         prompt_eval_dataloader,

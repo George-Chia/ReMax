@@ -11,8 +11,8 @@ DATA_PATH="/home/zhaiyuanzhao/llm/dataset/rm-static/data"
 ACTOR_MODEL_PATH="/home/zhaiyuanzhao/llm/hh/output_step1_Llama2_7b_hh/epoch1"
 REWARD_MODEL_PATH="/home/zhaiyuanzhao/llm/hh/output_step2_Llama2_7b_hh/epoch0"
 ACTOR_ZERO_STAGE=2
-REWARD_ZERO_STAGE=3
-REFERENCE_ZERO_STAGE=3
+REWARD_ZERO_STAGE=2
+REFERENCE_ZERO_STAGE=2
 OUTPUT=$1
 SEED=1234
 
@@ -68,4 +68,5 @@ deepspeed --master_port 12346  main.py \
    --print_answers \
    --save_answers \
    --save_at_final \
+   --add_eot_token \
    &> $OUTPUT/training.log
